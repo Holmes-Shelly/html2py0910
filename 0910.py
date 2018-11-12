@@ -15,7 +15,6 @@ with open('cookies.txt', 'r') as fp:
 	for cookie in intel_cookies:
 		req.cookies.set(cookie['name'],cookie['value'])
 		header_cookie = header_cookie + cookie['name'] + '=' + cookie['value'] + ';'
-# print header_cookie
 
 # 从网页中获取version
 content_test = req.get(url).content
@@ -23,23 +22,27 @@ version = re.findall(r'gen_dashboard_(\w*)\.js', content_test)[0]
 
 # header和data
 headers = {
-	'accept':'*/*',
+	'accept':'application/json, text/javascript, */*; q=0.01',
 	'accept-encoding':'gzip, deflate, br',
 	'accept-language':'en,zh;q=0.9,zh-CN;q=0.8,lb;q=0.7',
 	'content-length':'93',
 	'content-type':'application/json; charset=UTF-8',
-	'origin':'www.ingress.com',
-	'referer':'https://www.ingress.com/intel',
+	'origin':'https://intel.ingress.com',
+	'referer':'https://intel.ingress.com/intel',
 	'user-agent':'Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/68.0.3440.106 Safari/537.36',
+	'x-requested-with':'XMLHttpRequest',
 	}
-headers['x-csrftoken'] = intel_cookies[1]['value']
 headers['cookie'] = header_cookie
+if(intel_cookies[0]['name'] == 'csrftoken'):
+	headers['x-csrftoken'] = intel_cookies[0]['value']
+else:
+	headers['x-csrftoken'] = intel_cookies[1]['value']
 
 data = {'guid': "47297cb5f5db4a12a0b91284d8f13352.16"}
 data['v'] = version
 
 portal_guid_list = [
-"b7fb26b8fb7f4dce9636fdaf270c41f1.16","ca09681350fb46509c59a8b7268a5ab3.16","782d999c7a0a40b0b9b26c96f008fc63.16","e0edda8657324463af887c61d08dac97.16","499dee356bab4b9dba1dfa6ae2fc6979.16","b61f808294844cf1b70d39989b263b32.16","3372f163343e4cfe99dbcad160033160.16","d69a9ae6733e4c9487808cde64564be9.16","a0a1a02678c44d26bac39bd7c97b1a10.16","ac6f5912651948038996f3e488dea71a.16","a4d46c8a78134dab90555d9ce9f9ee09.16","79f6625e971e4f848bd8bc4017c1f2f2.16","5b355df9569d42bda75a24bb53faae64.16","c6ac5bd1f7344d9fb02ae0ea180dcb4e.16","47297cb5f5db4a12a0b91284d8f13352.16"
+"b7fb26b8fb7f4dce9636fdaf270c41f1.16","ca09681350fb46509c59a8b7268a5ab3.16","782d999c7a0a40b0b9b26c96f008fc63.16","e0edda8657324463af887c61d08dac97.16","499dee356bab4b9dba1dfa6ae2fc6979.16","b61f808294844cf1b70d39989b263b32.16","3372f163343e4cfe99dbcad160033160.16","d69a9ae6733e4c9487808cde64564be9.16","a0a1a02678c44d26bac39bd7c97b1a10.16","ac6f5912651948038996f3e488dea71a.16","a4d46c8a78134dab90555d9ce9f9ee09.16","79f6625e971e4f848bd8bc4017c1f2f2.16","5b355df9569d42bda75a24bb53faae64.16","c6ac5bd1f7344d9fb02ae0ea180dcb4e.16","47297cb5f5db4a12a0b91284d8f13352.16",
 ]
 
 res_power = (0, 1000, 1500, 2000, 2500, 3000, 4000, 5000, 6000)
@@ -47,11 +50,11 @@ query_history = ()
 
 # portal名字输出函数
 def portal_name_output():
-	f = open('post0910.txt', 'a')
+	f = open('prtlmsg.txt', 'a')
 	for portal_index in range(len(portal_guid_list)):
 		# 获取portal信息
 		data['guid'] = portal_guid_list[portal_index]
-		post_content = req.post('https://www.ingress.com/r/getPortalDetails', data = json.dumps(data), headers = headers)
+		post_content = req.post('https://intel.ingress.com/r/getPortalDetails', data = json.dumps(data), headers = headers)
 		portal_detail = post_content.json()['result']
 		# 规定输出格式
 		f.write('[')
@@ -71,7 +74,12 @@ def portal_power_query():
 	for portal_index in range(len(portal_guid_list)):
 		# 获取一个的portal信息
 		data['guid'] = portal_guid_list[portal_index]
-		post_content = req.post('https://www.ingress.com/r/getPortalDetails', data = json.dumps(data), headers = headers)
+		try:
+			post_content = req.post('https://intel.ingress.com/r/getPortalDetails', data = json.dumps(data), headers = headers)
+		except:
+			portal_power_list.append(0)
+			time.sleep(2)
+			continue
 		portal_detail = post_content.json()['result']
 		# 计算这个portal的电量总和
 		portal_full_power = 0
@@ -111,7 +119,7 @@ def query_cycle():
 
 # 输出到txt
 def query_output():
-	f = open('post0910.txt', 'a')
+	f = open('prtlmsg.txt', 'a')
 	f.write(time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time())))
 	f.write('\n')
 	for portal_index in range(len(query_history[-1])):
@@ -149,7 +157,7 @@ def portal_link(lat, lon):
 	latitude = '{:.6f}'.format(lat / 1000000.0)
 	longitude = '{:.6f}'.format(lon / 1000000.0)
 	return 'https://www.ingress.com/intel?ll=' + latitude + ',' + longitude + '&z=17&pll=' + latitude + ',' + longitude
-
+	
 # 根据guid列表输出portal名字和链接 	
 portal_name_output()
 
