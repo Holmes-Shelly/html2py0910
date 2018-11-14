@@ -69,6 +69,7 @@ def portal_name_output():
 
 # 电量查询函数
 def portal_power_query():
+	global query_history
 	portal_power_list = []
 	# 对列表里的portal进行循环
 	for portal_index in range(len(portal_guid_list)):
@@ -102,7 +103,6 @@ def portal_power_query():
 		# 歇一歇再查询下一个portal
 		time.sleep(2)
 	# 信息储存
-	global query_history
 	query_history += (tuple(portal_power_list),)
 	query_output()
 	# 查询变化
