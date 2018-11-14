@@ -77,7 +77,10 @@ def portal_power_query():
 		try:
 			post_content = req.post('https://intel.ingress.com/r/getPortalDetails', data = json.dumps(data), headers = headers)
 		except:
-			portal_power_list.append(0)
+			#网络不畅，电量维持不变
+			print time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time()))
+			print str(portal_index + 1), "has been ignored, maybe network wrong."
+			portal_power_list.append(query_history[-1][portal_index])
 			time.sleep(2)
 			continue
 		portal_detail = post_content.json()['result']
@@ -109,11 +112,7 @@ def portal_power_query():
 # 无限循环查询电量	
 def query_cycle():
 	while(1):
-		try:
-			portal_power_query()
-		except:
-			print time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time()))
-			print "Something went wrong, maybe network."
+		portal_power_query()
 		time.sleep(1200)
 	return
 
