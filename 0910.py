@@ -77,6 +77,7 @@ def portal_power_query():
 		data['guid'] = portal_guid_list[portal_index]
 		try:
 			post_content = req.post('https://intel.ingress.com/r/getPortalDetails', data = json.dumps(data), headers = headers)
+			portal_detail = post_content.json()['result']
 		except:
 			#网络不畅，电量维持不变
 			print time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time()))
@@ -84,7 +85,6 @@ def portal_power_query():
 			portal_power_list.append(query_history[-1][portal_index])
 			time.sleep(2)
 			continue
-		portal_detail = post_content.json()['result']
 		# 计算这个portal的电量总和
 		portal_full_power = 0
 		portal_decay_power = 0
